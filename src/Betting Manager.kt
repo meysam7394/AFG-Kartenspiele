@@ -1,0 +1,2 @@
+class `Betting Manager` {
+}
