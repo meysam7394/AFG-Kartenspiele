@@ -1,6 +1,6 @@
 class Player(val name: String) {
     val hand = mutableListOf<Card>()
-    var money = 100 //  money for each player
+    var money = 1000 // set money for each player
     var stickAmount = 0 // Amount paid as a stick to reveal cards
 
     fun drawCard(deck: Deck) {
@@ -14,37 +14,29 @@ class Player(val name: String) {
         println("$name's Hand: [${hand.joinToString(", ")}]")
     }
 }
-//methods
-    fun calculateHandValue(hand: List<Card>): Int {
-    val cardValues = mapOf(
-        "Ace" to 15, "2" to 14, "King" to 13, "Queen" to 12, "Jack" to 11, "10" to 10,  "9" to 9, "8" to 7, "7" to 6, "6" to 5, "5" to 4,
-        "4" to 3, "3" to 2, "2" to 1,
-    )
+fun calculateHandValue(hand: List<Card>): Int {
+    var handValue = 0
+    var numberOfAces = 0
 
-    // Sort the hand based on custom ranking
-    val sortedHand = hand.sortedBy { cardValues[it.value] }
-
-    // Check for three Aces
-    if (sortedHand.count { it.value == "Ace" } == 3) {
-        return 1000 // Three Aces is the highest hand
-    }
-
-    // Check for combinations of Jack cards
-    val jackCards = listOf("2", "10", "Ace", "King", "Queen", "Jack")
-    if (sortedHand.all { it.value in jackCards }) {
-        var handValue = 0
-        for (card in sortedHand) {
-            val cardValue = cardValues[card.value] ?: 0
-            handValue += cardValue
-            if (handValue > 15) {
-                handValue -= 15
+    for (card in hand) {
+        val cardValue = when (card.value) {
+            "Ace" -> {
+                numberOfAces++
+                12
             }
+            "2" -> 11 // "2" is higher than "King," "Queen," "Jack," and "10"
+            "3", "4", "5", "6", "7", "8", "9" -> card.value.toInt()
+            else -> 10  // For King, Queen, Jack, and 10
         }
-        return handValue
+        handValue += cardValue
     }
 
-    // Calculate the hand value based on numeric values
-    val numericValue = sortedHand.sumBy { cardValues[it.value] ?: 0 }
+    // Check if we need to subtract 10 for Aces
+    while (handValue > 21 && numberOfAces > 0) {
+        handValue -= 10
+        numberOfAces--
+    }
 
-    return numericValue
+    return handValue
 }
+

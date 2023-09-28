@@ -1,4 +1,5 @@
 fun main() {
+    println("Welcome! Each player starts with 1000 euros in their accounts.")
     val deck = Deck()
     deck.shuffle()
 
@@ -11,116 +12,262 @@ fun main() {
         player2.drawCard(deck)
     }
 
-    // Print a message for Player 1 options
-    println("${player1.name}'s Hand: [Hidden, Hidden, Hidden]")
-    println("${player1.name}, choose one of the following options: fling, stay, exit")
+    var player1Turn = true
 
-    // code for handling player's choice
-    val player1Choice = readLine()?.toLowerCase()
-    when (player1Choice) {
+    val currentPlayer = if (player1Turn) player1 else player2
+    val otherPlayer = if (player1Turn) player2 else player1
+
+    println("${currentPlayer.name}'s Hand: [Hidden, Hidden, Hidden]\n Choose one of the following options: fling, read, exit")
+
+    val currentPlayerChoice = readLine()?.toLowerCase()
+
+    when (currentPlayerChoice) {
         "fling" -> {
-    println("${player1.name} has chosen to fling.")
+            handleFling(currentPlayer, otherPlayer, deck)
+        }
+        "read" -> {
+            handleRead(currentPlayer, otherPlayer, player1Turn)
+        }
+        "exit" -> {
+            println("${currentPlayer.name} has chosen to exit. ${otherPlayer.name} is the winner!")
+        }
+        else -> {
+            println("Invalid choice for ${currentPlayer.name}. Please choose a valid option.")
+        }
+    }
+}
+
+fun handleFling(currentPlayer: Player, otherPlayer: Player, deck: Deck) {
+    println("${currentPlayer.name} has chosen to fling.")
     println("How much euro do you want to fling?")
-    val flingAmount = readLine()?.toInt()
+    val flingAmount = readLine()?.toIntOrNull()
+
     if (flingAmount != null) {
     if (flingAmount < 10) {
-     println("${player1.name}, you must fling at least 10 euro to allow Player 2 to double.")
+     println("${currentPlayer.name}, you must fling at least 10 euro to allow ${otherPlayer.name} to double.")
     }
-    else {
-    player1.money -= flingAmount
-     println("${player1.name} has flung $flingAmount euro.")
-       // Player 2 turn to double, read, or exit
-     println("${player2.name}, Player 1 has flung $flingAmount euro. Choose one of the following options: Double, read, exit")
-      val player2Choice = readLine()?.toLowerCase()
-      when (player2Choice) {
-       "double" -> {
-      val doubleAmount = flingAmount * 2
-      if (doubleAmount <= player2.money) {
-      player2.money -= doubleAmount
-      println("${player2.name} has chosen to double the round. Player 2 pays $doubleAmount euro.")
-      // Player 1 turn to pay the stick
-      println("${player1.name}, pay a stick to reveal cards or continue.")
-       val stickAmount = readLine()?.toInt()
-          if (stickAmount != null) {
-          if (stickAmount <= player1.money) {
-      player1.money -= stickAmount
-      player1.stickAmount = stickAmount
-      println("${player1.name} has paid $stickAmount euro as a stick.")
-    // Reveal cards for both players
-     player1.revealCards()
-     player2.revealCards()
+    else{
 
-   // Calculate hand values
-     val player1HandValue = calculateHandValue(player1.hand)
-     val player2HandValue = calculateHandValue(player2.hand)
-
-   // Analyze and show the winner or loser
-     if (player1HandValue > player2HandValue) {
-              println("${player1.name} is the winner!")
-     }
-     else if (player2HandValue > player1HandValue) {
-    println("${player2.name} is the winner!")
-             } else {
-       if (player1.stickAmount > 0 && player2.stickAmount == 0) {
-    println("${player1.name} is the loser because they paid the stick and revealed the cards.")
-    println("${player2.name} is the winner!")
-    } else if (player2.stickAmount > 0 && player1.stickAmount == 0) {
-    println("${player2.name} is the loser because they paid the stick and revealed the cards.")
-    println("${player1.name} is the winner!")
-    }
-     }
-     }
-     else {
-       println("${player1.name}, you don't have enough money to pay the stick.")
-      }
-      }
-     else {
-          println("Invalid input. Stick amount must be a valid number.")
-   }
-  }
-    else {
-   println("${player2.name}, you don't have enough money to double the round.")
-      }
-    }
-    "read" -> {
-    println("${player2.name} has chosen to read the cards.")
-
-  }
-     "exit" -> {
-    println("${player2.name} has chosen to exit.")
-
-   }
- else -> println("Invalid choice for ${player2.name}. Please choose one of the options: Double, read, exit.")
- }
-}
- } else {
- println("Invalid input. Fling amount must be a valid number.")
-  }
- }
-  "stay" -> {
-  println("${player1.name} has chosen to stay.")
-      // Player 2's turn to double, read, or exit
-   println("${player2.name}, choose one of the following options: Double, read, exit")
-   val player2Choice = readLine()?.toLowerCase()
-  when (player2Choice) {
+    currentPlayer.money -= flingAmount
+    println("${currentPlayer.name} has flung $flingAmount euro.")
+    // Other player's turn to double, read, or exit
+    println("${otherPlayer.name}, ${currentPlayer.name} has flung $flingAmount euro. Choose one of the following options: Double, read, exit")
+    val otherPlayerChoice = readLine()?.toLowerCase()
+    when (otherPlayerChoice) {
     "double" -> {
-      println("${player2.name}, you can only double if Player 1 flings.")
-        }
-      "read" -> {
-      println("${player2.name} has chosen to read the cards.")
+     val doubleAmount = flingAmount * 2
+     if (doubleAmount <= otherPlayer.money) {
+      otherPlayer.money -= doubleAmount
+       println("${otherPlayer.name} has chosen to double the round. ${otherPlayer.name} pays $doubleAmount euro.")
 
+       // Current player's turn to pay the stick
+    println("${currentPlayer.name}, pay a stick to reveal cards or continue.")
+     val stickAmount = readLine()?.toInt()
+
+     if (stickAmount != null) {
+     if (stickAmount <= currentPlayer.money) {
+      currentPlayer.money -= stickAmount
+      currentPlayer.stickAmount = stickAmount
+         println("${currentPlayer.name} has paid $stickAmount euro as a stick.")
+
+      // Reveal cards for both players
+     currentPlayer.revealCards()
+     otherPlayer.revealCards()
+
+     // Calculate hand values
+    val player1HandValue = calculateHandValue(currentPlayer.hand)
+    val player2HandValue = calculateHandValue(otherPlayer.hand)
+    // show the winner or loser
+    if (player1HandValue > player2HandValue) {
+     println("${currentPlayer.name} is the winner!")
+    }
+    else if (player2HandValue > player1HandValue) {
+        println("${otherPlayer.name} is the winner!")
+         }
+         } else
+         {
+     println("${currentPlayer.name} doesn't have enough money to pay for the stick.")
      }
-      "exit" -> {
-      println("${player2.name} has chosen to exit.")
+     }
+     }
+     else
+     {
+      println("${otherPlayer.name} doesn't have enough money to double the round.")
+      }
+     }
+        "read"->{
+            handleReadPlayer2(otherPlayer, currentPlayer)
 
-  }
-   else -> println("Invalid choice for ${player2.name}. Please choose one of the options: Double, read, exit.")
- }
- }
- "exit" -> {
-  println("${player1.name} has chosen to exit.")
-   // Handle exit logic here
-  }
- else -> println("Invalid choice for ${player1.name}. Please choose one of the options: fling, stay, exit.")
- }
+        }
+     "exit" -> {
+       println("${otherPlayer.name} has chosen to exit. ${currentPlayer.name} is the winner!")
+         }
+       else -> {
+            println("Invalid choice for ${otherPlayer.name}. Please choose a valid option.")
+                }
+            }
+        }
+    }
+    else {
+        println("Invalid input. Please enter a valid number for the fling amount.")
+    }
+}
+fun handleRead(currentPlayer: Player, otherPlayer: Player, isFirstPlayer: Boolean) {
+    println("${currentPlayer.name} has chosen to read.")
+    println("You decided to read. Now, choose one of the following options: pay stick to continue or exit")
+
+    val readChoice = readLine()?.toLowerCase()
+    println("${currentPlayer.name}, how much do you want to pay?")
+    val paystickAmount = readLine()?.toIntOrNull()
+
+  when (readChoice) {
+    "pay stick" -> {
+     if (paystickAmount != null && paystickAmount >= currentPlayer.stickAmount) {
+      currentPlayer.money -= paystickAmount
+      println("${currentPlayer.name} paid $paystickAmount as a stick.")
+
+       // Check if the other player can continue
+      if (otherPlayer.money >= currentPlayer.stickAmount) {
+      println("${otherPlayer.name}, ${currentPlayer.name} has paid $paystickAmount. Choose one of the following options: pay stick to continue or pay stick to reveal hand.")
+
+      val otherPlayerChoice = readLine()?.toLowerCase()
+
+      when (otherPlayerChoice) {
+        "pay stick to continue" -> {
+      val otherPaystickAmount = readLine()?.toIntOrNull()
+        if (otherPaystickAmount != null && otherPaystickAmount >= currentPlayer.stickAmount) {
+       otherPlayer.money -= otherPaystickAmount
+       println("${otherPlayer.name} paid $otherPaystickAmount to continue.")
+
+        // Now reveal both hands and show the winner
+       currentPlayer.revealCards()
+        otherPlayer.revealCards()
+        val player1HandValue = calculateHandValue(currentPlayer.hand)
+        val player2HandValue = calculateHandValue(otherPlayer.hand)
+
+        if (player1HandValue > player2HandValue) {
+        println("${currentPlayer.name} is the winner!")
+         } else if (player2HandValue > player1HandValue) {
+         println("${otherPlayer.name} is the winner!")
+          }
+        else {
+       println("It's a tie!")
+        }
+       }
+        else {
+       println("Invalid input for ${otherPlayer.name}. Please enter a valid amount to continue.")
+       }
+        }
+      "pay stick to reveal hand" -> {
+      // Reveal both hands and show the winner
+       currentPlayer.revealCards()
+       otherPlayer.revealCards()
+         val player1HandValue = calculateHandValue(currentPlayer.hand)
+         val player2HandValue = calculateHandValue(otherPlayer.hand)
+
+          if (player1HandValue > player2HandValue) {
+          println("${currentPlayer.name} is the winner!")
+           } else if (player2HandValue > player1HandValue) {
+          println("${otherPlayer.name} is the winner!")
+           }
+          else {
+          println("It's a tie!")
+          }
+          }
+           else -> {
+          println("Invalid choice for ${otherPlayer.name}. Please choose a valid option.")
+           }
+       }
+         } else {
+        println("${otherPlayer.name} doesn't have enough money to continue.")
+        println("${otherPlayer.name} is the winner!")
+         }
+            }
+     else {
+      println("Invalid input for ${currentPlayer.name}. Please enter a valid amount to continue.")
+            }
+        }
+        "exit" -> {
+      println("${currentPlayer.name} has chosen to exit. ${otherPlayer.name} is the winner!")
+        }
+        else -> {
+      println("Invalid choice for ${currentPlayer.name}. Please choose a valid option.")
+        }
+    }
+}
+
+
+fun handleReadPlayer2(currentPlayer: Player, otherPlayer: Player) {
+    println("${currentPlayer.name}, you have chosen to read. Now, choose one of the following options: pay to continue or pay to reveal your hand")
+
+    val readChoice = readLine()?.toLowerCase()
+
+    when (readChoice) {
+         "pay to continue" -> {
+    println("How much euro do you want to pay to continue?")
+    val paymentAmount = readLine()?.toIntOrNull()
+
+    if (paymentAmount != null) {
+    if (paymentAmount > 0 && paymentAmount > currentPlayer.stickAmount) {
+      currentPlayer.money -= paymentAmount
+       println("${currentPlayer.name} paid $paymentAmount euros to continue.")
+
+        // Reveal cards for both players
+     currentPlayer.revealCards()
+     otherPlayer.revealCards()
+
+     // Calculate hand values
+     val player1HandValue = calculateHandValue(currentPlayer.hand)
+     val player2HandValue = calculateHandValue(otherPlayer.hand)
+
+     // show the winner or loser
+     if (player1HandValue > player2HandValue) {
+     println("${currentPlayer.name} is the winner!")
+     } else if (player2HandValue > player1HandValue) {
+     println("${otherPlayer.name} is the winner!")
+     }
+     } else
+     {
+       println("Invalid input. Payment amount must be greater than 0 and greater than the stick amount.")
+                }
+            } else {
+                println("Invalid input. Please enter a valid number for the payment amount.")
+            }
+        }
+        "pay to reveal your hand" -> {
+            println("How much euro do you want to pay to reveal your hand?")
+       val paymentAmount = readLine()?.toIntOrNull()
+
+       if (paymentAmount != null) {
+       if (paymentAmount > 0 && paymentAmount > currentPlayer.stickAmount) {
+       currentPlayer.money -= paymentAmount
+        println("${currentPlayer.name} paid $paymentAmount euros to reveal their hand.")
+
+        // Reveal cards for both players
+        currentPlayer.revealCards()
+        otherPlayer.revealCards()
+
+        // Calculate hand values
+         val player1HandValue = calculateHandValue(currentPlayer.hand)
+         val player2HandValue = calculateHandValue(otherPlayer.hand)
+
+         // show the winner or loser
+          if (player1HandValue > player2HandValue) {
+           println("${currentPlayer.name} is the winner!")
+           } else if (player2HandValue > player1HandValue) {
+            println("${otherPlayer.name} is the winner!")
+              }
+                }
+       else {
+        println("Invalid input. Payment amount must be greater than 0 and greater than the stick amount.")
+                }
+            }
+       else {
+           println("Invalid input. Please enter a valid number for the payment amount.")
+            }
+        }
+       else -> {
+            println("Invalid choice for ${currentPlayer.name}. Please choose a valid option.")
+        }
+    }
 }
